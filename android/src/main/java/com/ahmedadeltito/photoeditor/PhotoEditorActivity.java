@@ -21,6 +21,7 @@ import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.exifinterface.media.ExifInterface;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
@@ -107,7 +108,7 @@ public class PhotoEditorActivity extends AppCompatActivity implements View.OnCli
 
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
 
-        selectedImagePath = getIntent().getExtras().getString("selectedImagePath");	
+        selectedImagePath = getIntent().getExtras().getString("selectedImagePath");
         if (selectedImagePath.contains("content://")) {
             selectedImagePath = getPath(Uri.parse(selectedImagePath));
         }
@@ -336,11 +337,13 @@ public class PhotoEditorActivity extends AppCompatActivity implements View.OnCli
         photoEditorSDK.brushEraser();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     private void openAddTextPopupWindow(String text, int colorCode) {
         colorCodeTextView = colorCode;
         LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View addTextPopupWindowRootView = inflater.inflate(R.layout.add_text_popup_window, null);
         final EditText addTextEditText = (EditText) addTextPopupWindowRootView.findViewById(R.id.add_text_edit_text);
+        addTextEditText.setTextColor(getResources().getColor(R.color.red_color_picker));
         TextView addTextDoneTextView = (TextView) addTextPopupWindowRootView.findViewById(R.id.add_text_done_tv);
         RecyclerView addTextColorPickerRecyclerView = (RecyclerView) addTextPopupWindowRootView.findViewById(R.id.add_text_color_picker_recycler_view);
         LinearLayoutManager layoutManager = new LinearLayoutManager(PhotoEditorActivity.this, LinearLayoutManager.HORIZONTAL, false);
@@ -349,7 +352,7 @@ public class PhotoEditorActivity extends AppCompatActivity implements View.OnCli
         ColorPickerAdapter colorPickerAdapter = new ColorPickerAdapter(PhotoEditorActivity.this, colorPickerColors);
         colorPickerAdapter.setOnColorPickerClickListener(new ColorPickerAdapter.OnColorPickerClickListener() {
             @Override
-            public void onColorPickerClickListener(int colorCode) {
+            public void onColorPickerClickListener(int colorCode, int position) {
                 addTextEditText.setTextColor(colorCode);
                 colorCodeTextView = colorCode;
             }
@@ -399,7 +402,7 @@ public class PhotoEditorActivity extends AppCompatActivity implements View.OnCli
             ColorPickerAdapter colorPickerAdapter = new ColorPickerAdapter(PhotoEditorActivity.this, colorPickerColors);
             colorPickerAdapter.setOnColorPickerClickListener(new ColorPickerAdapter.OnColorPickerClickListener() {
                 @Override
-                public void onColorPickerClickListener(int colorCode) {
+                public void onColorPickerClickListener(int colorCode, int position) {
                     photoEditorSDK.setBrushColor(colorCode);
                 }
             });
