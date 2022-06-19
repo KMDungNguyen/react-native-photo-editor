@@ -27,12 +27,14 @@ public class ColorPickerAdapter extends RecyclerView.Adapter<ColorPickerAdapter.
   private LayoutInflater inflater;
   private List<Integer> colorPickerColors;
   private OnColorPickerClickListener onColorPickerClickListener;
-  private int pos = 6;
+  private int pos;
 
-  public ColorPickerAdapter(@NonNull Context context, @NonNull List<Integer> colorPickerColors) {
+  public ColorPickerAdapter(@NonNull Context context, @NonNull List<Integer> colorPickerColors, int initColorCode) {
     this.context = context;
     this.inflater = LayoutInflater.from(context);
     this.colorPickerColors = colorPickerColors;
+    int position = colorPickerColors.indexOf(initColorCode);
+    this.pos = position == -1 ? 5 : position; // 5 equals index of red item
   }
 
   @Override

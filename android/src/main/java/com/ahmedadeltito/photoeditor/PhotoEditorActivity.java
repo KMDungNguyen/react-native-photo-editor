@@ -78,7 +78,6 @@ public class PhotoEditorActivity extends AppCompatActivity implements View.OnCli
   final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
 
   private final String TAG = "PhotoEditorActivity";
-  private final int DEFAULT_COLOR = -1242561; // red
   private RelativeLayout parentImageRelativeLayout;
   private RecyclerView drawingViewColorPickerRecyclerView;
   private TextView undoTextView, undoTextTextView, doneDrawingTextView, eraseDrawingTextView;
@@ -88,7 +87,7 @@ public class PhotoEditorActivity extends AppCompatActivity implements View.OnCli
   private View bottomShadow;
   private RelativeLayout bottomShadowRelativeLayout;
   private ArrayList<Integer> colorPickerColors;
-  private int colorCodeTextView = -1;
+  private int selectedColorCode = -1242561; // red
   private PhotoEditorSDK photoEditorSDK;
   private String selectedImagePath;
   private int imageOrientation;
@@ -247,9 +246,10 @@ public class PhotoEditorActivity extends AppCompatActivity implements View.OnCli
     ArrayList<Integer> intentColors = (ArrayList<Integer>) getIntent().getExtras().getSerializable("colorPickerColors");
 
     colorPickerColors = new ArrayList<>();
-    if (intentColors != null) {
-      colorPickerColors = intentColors;
-    } else {
+//    if (intentColors != null) {
+//      colorPickerColors = intentColors;
+//      Log.d(TAG, "onCreate: ", intentColors.toString());
+//    } else {
       colorPickerColors.add(getResources().getColor(R.color.black));
       colorPickerColors.add(getResources().getColor(R.color.blue_color_picker));
       colorPickerColors.add(getResources().getColor(R.color.brown_color_picker));
@@ -262,8 +262,7 @@ public class PhotoEditorActivity extends AppCompatActivity implements View.OnCli
       colorPickerColors.add(getResources().getColor(R.color.white));
       colorPickerColors.add(getResources().getColor(R.color.yellow_color_picker));
       colorPickerColors.add(getResources().getColor(R.color.yellow_green_color_picker));
-    }
-
+//    }
 
     new CountDownTimer(500, 100) {
 
@@ -339,8 +338,7 @@ public class PhotoEditorActivity extends AppCompatActivity implements View.OnCli
   }
 
   @RequiresApi(api = Build.VERSION_CODES.Q)
-  private void openAddTextPopupWindow(String text, int colorCode) {
-    colorCodeTextView = colorCode;
+  private void openAddTextPopupWindow(String text) {
     LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     View addTextPopupWindowRootView = inflater.inflate(R.layout.add_text_popup_window, null);
     final EditText addTextEditText = (EditText) addTextPopupWindowRootView.findViewById(R.id.add_text_edit_text);
@@ -349,18 +347,18 @@ public class PhotoEditorActivity extends AppCompatActivity implements View.OnCli
     LinearLayoutManager layoutManager = new LinearLayoutManager(PhotoEditorActivity.this, LinearLayoutManager.HORIZONTAL, false);
     addTextColorPickerRecyclerView.setLayoutManager(layoutManager);
     addTextColorPickerRecyclerView.setHasFixedSize(true);
-    ColorPickerAdapter colorPickerAdapter = new ColorPickerAdapter(PhotoEditorActivity.this, colorPickerColors);
+    ColorPickerAdapter colorPickerAdapter = new ColorPickerAdapter(PhotoEditorActivity.this, colorPickerColors, selectedColorCode);
     colorPickerAdapter.setOnColorPickerClickListener(new ColorPickerAdapter.OnColorPickerClickListener() {
       @Override
       public void onColorPickerClickListener(int iColorCode, int position) {
         addTextEditText.setTextColor(iColorCode);
-        colorCodeTextView = iColorCode;
+        selectedColorCode = iColorCode;
       }
     });
     addTextColorPickerRecyclerView.setAdapter(colorPickerAdapter);
+    addTextEditText.setTextColor(selectedColorCode);
     if (stringIsNotEmpty(text)) {
       addTextEditText.setText(text);
-      addTextEditText.setTextColor(colorCode == -1 ? getResources().getColor(R.color.red_color_picker) : colorCode);
     }
     final PopupWindow pop = new PopupWindow(PhotoEditorActivity.this);
     pop.setContentView(addTextPopupWindowRootView);
@@ -374,7 +372,7 @@ public class PhotoEditorActivity extends AppCompatActivity implements View.OnCli
     addTextDoneTextView.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        addText(addTextEditText.getText().toString(), colorCodeTextView);
+        addText(addTextEditText.getText().toString(), selectedColorCode);
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         pop.dismiss();
@@ -400,12 +398,13 @@ public class PhotoEditorActivity extends AppCompatActivity implements View.OnCli
       LinearLayoutManager layoutManager = new LinearLayoutManager(PhotoEditorActivity.this, LinearLayoutManager.HORIZONTAL, false);
       drawingViewColorPickerRecyclerView.setLayoutManager(layoutManager);
       drawingViewColorPickerRecyclerView.setHasFixedSize(true);
-      photoEditorSDK.setBrushColor(getResources().getColor(R.color.red_color_picker));
-      ColorPickerAdapter colorPickerAdapter = new ColorPickerAdapter(PhotoEditorActivity.this, colorPickerColors);
+      photoEditorSDK.setBrushColor(selectedColorCode);
+      ColorPickerAdapter colorPickerAdapter = new ColorPickerAdapter(PhotoEditorActivity.this, colorPickerColors, selectedColorCode);
       colorPickerAdapter.setOnColorPickerClickListener(new ColorPickerAdapter.OnColorPickerClickListener() {
         @Override
         public void onColorPickerClickListener(int colorCode, int position) {
           photoEditorSDK.setBrushColor(colorCode);
+          selectedColorCode = colorCode;
         }
       });
       drawingViewColorPickerRecyclerView.setAdapter(colorPickerAdapter);
@@ -589,7 +588,7 @@ public class PhotoEditorActivity extends AppCompatActivity implements View.OnCli
       System.out.println("CROP IMAGE DUD");
       startCropping();
     } else if (v.getId() == R.id.add_text_tv) {
-      openAddTextPopupWindow("", -1);
+      openAddTextPopupWindow("");
     } else if (v.getId() == R.id.add_pencil_tv) {
       updateBrushDrawingView(true);
     } else if (v.getId() == R.id.done_drawing_tv) {
@@ -610,7 +609,7 @@ public class PhotoEditorActivity extends AppCompatActivity implements View.OnCli
   @RequiresApi(api = Build.VERSION_CODES.Q)
   @Override
   public void onEditTextChangeListener(String text, int colorCode) {
-    openAddTextPopupWindow(text, colorCode);
+    openAddTextPopupWindow(text);
   }
 
   @Override
